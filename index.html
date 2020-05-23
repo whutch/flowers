@@ -1,0 +1,606 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>Flower Generator</title>
+        <link rel="stylesheet" type="text/css" href="static/bootstrap/4.0.0/css/bootstrap.min.css"/>
+        <link rel="stylesheet" type="text/css" href="static/opensans/v10/opensans.css"/>
+        <style>
+            body, input, textarea {
+                font-family: "Open Sans", sans-serif;
+                font-size: 11pt;
+            }
+
+            #controls {
+                margin-top: 1em;
+            }
+
+            #options {
+                display: none;
+            }
+
+            #breed-toggles button, #color-toggles button {
+                margin-bottom: 5px;
+            }
+
+            #flower-toggles {
+                margin-top: 10px;
+            }
+
+            #flowers {
+                margin-top: 1em;
+            }
+
+            #flower-bed {
+                width: 25em;
+                height: 25em;
+
+                background-image: url("images/grass.png");
+                background-size: 5em;
+            }
+
+            img.toggle {
+                width: 3em;
+                height: 3em;
+            }
+
+            .disabled-option {
+                opacity: 0.3;
+            }
+
+            img.flower {
+                width: 5em;
+                height: 5em;
+                float: left;
+            }
+
+            #footer {
+                margin-top: 10px;
+            }
+
+            #footer ul {
+                padding: 0;
+                list-style-type: none;
+            }
+
+            #footer ul li {
+                display: inline-block;
+            }
+
+            #footer ul li:not(:first-child) {
+                margin-left: 10px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="row" id="options">
+                <div class="col">
+                    <div class="row">
+                        <div class="col">
+                            <h3>Symmetry</h3>
+                            <div id="symmetry-toggles">
+                                <img src="images/symmetry_vertical.png" class="toggle" data-option="Vertical"/>
+                                <img src="images/symmetry_horizontal.png" class="toggle" data-option="Horizontal"/>
+                                <img src="images/symmetry_diagonal_forward.png" class="toggle" data-option="Diagonal Forward"/>
+                                <img src="images/symmetry_diagonal_backward.png" class="toggle" data-option="Diagonal Backward"/>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h3>Breeds</h3>
+                            <div id="breed-toggles">
+                                <button type="button" class="btn btn-primary" data-breed="All">All</button>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h3>Colors</h3>
+                            <div id="color-toggles">
+                                <button type="button" class="btn btn-primary" data-color="All">All</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row" id="flower-toggles"></div>
+                </div>
+            </div>
+            <div class="row" id="controls">
+                <div class="col">
+                    <button type="button" class="btn btn-success" id="generate-button">Generate</button>
+                    <button type="button" class="btn btn-primary" id="options-button">⚙️</button>
+                </div>
+            </div>
+            <div class="row" id="flowers">
+                <div class="col">
+                    <div id="flower-bed"></div>
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript" src="static/jquery/3.3.1/jquery.min.js"></script>
+        <script type="text/javascript" src="static/popper/v1/popper.min.js"></script>
+        <script type="text/javascript" src="static/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+        <script type="text/javascript">
+
+            // Because JavaScript doesn't have this??
+            function random_int(min, max) {
+                return Math.floor(Math.random() * (max - min + 1) + min);
+            }
+
+            function random_choice(collection) {
+                return collection[random_int(0, collection.length - 1)];
+            }
+
+            // Images stolen from Karasophe's Flower Guide:
+            // https://www.reddit.com/r/AnimalCrossing/comments/fu5s1a/a_guide_for_creating_hybrid_flowers_in_animal/
+
+            flower_data = {
+                "Cosmo": {
+                    "Black": { hybrid: true, },
+                    "Orange": { hybrid: true, },
+                    "Pink": { hybrid: true, },
+                    "Red": {},
+                    "White": {},
+                    "Yellow": {},
+                },
+                "Hyacinth": {
+                    "Blue": { hybrid: true, },
+                    "Orange": { hybrid: true, },
+                    "Pink": { hybrid: true, },
+                    "Purple": { hybrid: true, },
+                    "Red": {},
+                    "White": {},
+                    "Yellow": {},
+                },
+                "Lily": {
+                    "Black": { hybrid: true, },
+                    "Orange": { hybrid: true, },
+                    "Pink": { hybrid: true, },
+                    "Red": {},
+                    "White": {},
+                    "Yellow": {},
+                },
+                "Mum": {
+                    "Green": { hybrid: true, },
+                    "Pink": { hybrid: true, },
+                    "Purple": { hybrid: true, },
+                    "Red": {},
+                    "White": {},
+                    "Yellow": {},
+                },
+                "Pansy": {
+                    "Blue": { hybrid: true, },
+                    "Orange": { hybrid: true, },
+                    "Purple": { hybrid: true, },
+                    "Red": {},
+                    "White": {},
+                    "Yellow": {},
+                },
+                "Rose": {
+                    "Blue": { hybrid: true, },
+                    "Black": { hybrid: true, },
+                    "Gold": { hybrid: true, },
+                    "Orange": { hybrid: true, },
+                    "Pink": { hybrid: true, },
+                    "Purple": { hybrid: true, },
+                    "Red": {},
+                    "White": {},
+                    "Yellow": {},
+                },
+                "Tulip": {
+                    "Black": { hybrid: true, },
+                    "Orange": { hybrid: true, },
+                    "Pink": { hybrid: true, },
+                    "Purple": { hybrid: true, },
+                    "Red": {},
+                    "White": {},
+                    "Yellow": {},
+                },
+                "Windflower": {
+                    "Blue": { hybrid: true, },
+                    "Orange": {},
+                    "Pink": { hybrid: true, },
+                    "Purple": { hybrid: true, },
+                    "Red": {},
+                    "White": {},
+                },
+            };
+
+            field_width = 5;
+            field_height = 5;
+            enabled_flowers = [];
+            regenerate_enabled_flowers = true;
+            flower_breeds = [];
+            flower_colors = [];
+
+            symmetry_data = {
+                "Vertical": {
+                    "func": function (x, y) { return {x: -x, y: y}; },
+                },
+                "Horizontal": {
+                    "func": function (x, y) { return {x: x, y: -y}; },
+                },
+                "Diagonal Forward": {
+                    "func": function (x, y) { return {x: y, y: x}; },
+                },
+                "Diagonal Backward": {
+                    "func": function (x, y) { return {x: -y, y: -x}; },
+                },
+            };
+
+            enabled_symmetry = [];
+            regenerate_enabled_symmetry = true;
+
+
+            function coord_to_index(x, y, width, height) {
+                return (x + Math.floor(width / 2)) + (height * (Math.floor(height / 2) - y));
+            }
+
+
+            function initialize() {
+                var breed_toggles = $("#breed-toggles");
+                var flower_toggles = $("#flower-toggles");
+                $.each(flower_data, function(breed, breed_data) {
+                    breed_toggles.append(`<button type="button" class="btn btn-primary" data-breed="${breed}">${breed}</button>\n`)
+                    var breed_div = $(`<div class="col"></div>`);
+                    flower_toggles.append(breed_div);
+                    flower_breeds.push(breed);
+                    $.each(breed_data, function(color, color_data) {
+                        var flower_name = `${breed.toLowerCase()}_${color.toLowerCase()}`;
+                        breed_div.append(`<img src="images/flowers/${flower_name}.png" class="toggle" data-breed="${breed}" data-color="${color}"/>`);
+                        if (!flower_colors.includes(color)) {
+                            flower_colors.push(color);
+                        }
+                    });
+                });
+                flower_colors.sort();
+                var color_toggles = $("#color-toggles");
+                $.each(flower_colors, function(index, color) {
+                    color_toggles.append(`<button type="button" class="btn btn-primary" data-color="${color}">${color}</button>\n`);
+                });
+                var flower_bed = $("#flower-bed");
+                var flower_count = field_width * field_height;
+                for (var n = 0; n < flower_count; n++) {
+                    flower_bed.append(`<img src="images/transparent.png" class="flower"/>`);
+                }
+            }
+
+
+            function click_generate(event) {
+                console.clear();
+                if (regenerate_enabled_flowers) {
+                    console.log("Regenerating enabled flowers.");
+                    enabled_flowers = [];
+                    $.each(flower_data, function(breed, breed_data) {
+                        $.each(breed_data, function(color, color_data) {
+                            if (!color_data.disabled) {
+                                var flower_name = `${breed.toLowerCase()}_${color.toLowerCase()}`;
+                                enabled_flowers.push(flower_name);
+                            }
+                        });
+                    });
+                    regenerate_enabled_flowers = false;
+                }
+                if (!enabled_flowers.length) {
+                    console.log("No flowers available.");
+                    return;
+                }
+                if (regenerate_enabled_symmetry) {
+                    console.log("Regenerating enabled symmetry.");
+                    enabled_symmetry = [];
+                    $.each(symmetry_data, function(option, data) {
+                        if (!data.disabled) {
+                            enabled_symmetry.push(option);
+                        }
+                    });
+                    regenerate_enabled_symmetry = false;
+                }
+                if (!enabled_symmetry.length) {
+                    console.log("No symmetry available.");
+                    return;
+                }
+                // Determine line of symmetry.
+                // TODO: symmetry only works like I have it if the field is a square
+                // TODO: this probably all breaks if the width/height are not odd
+                var symmetry = random_choice(enabled_symmetry);
+                console.log("Symmetry is " + symmetry);
+                // Determine flower options.
+                var flower_options = [];
+                var flower_option_count = random_int(2, 3);
+                for (var n = 0; n < flower_option_count; n++) {
+                    flower_options.push(random_choice(enabled_flowers));
+                }
+                // Generate final design.
+                var spots = [];
+                var min_xy = -Math.floor(field_width / 2);
+                for (var y = min_xy; y < min_xy + field_width; y++) {
+                    for (var x = min_xy; x < min_xy + field_width; x++) {
+                        spots.push({x: x, y: y});
+                    }
+                }
+                while (spots.length) {
+                    var spot = spots.pop();
+                    var index = coord_to_index(spot.x, spot.y, field_width, field_height);
+                    var flower = $("#flower-bed").children()[index];
+                    var flower_name = random_choice(flower_options);
+                    $(flower).attr("src", `images/flowers/${flower_name}.png`);
+                    // Now find the symmetrical spot.
+                    var sym_spot = symmetry_data[symmetry].func(spot.x, spot.y);
+                    for (index = 0; index < spots.length; index++) {
+                        if (spots[index].x == sym_spot.x && spots[index].y == sym_spot.y) {
+                            spots.splice(index, 1);
+                            break;
+                        }
+                    }
+                    index = coord_to_index(sym_spot.x, sym_spot.y, field_width, field_height);
+                    flower = $("#flower-bed").children()[index];
+                    $(flower).attr("src", `images/flowers/${flower_name}.png`);
+                }
+                console.log("Done.");
+            }
+
+
+            function click_options(event) {
+                $("#options").toggle();
+            }
+
+
+            function click_toggle_symmetry(event) {
+                var img = $(this);
+                var option = img.data("option");
+                if (img.hasClass("disabled-option")) {
+                    delete symmetry_data[option].disabled;
+                }
+                else {
+                    symmetry_data[option].disabled = true;
+                }
+                img.toggleClass("disabled-option");
+                regenerate_enabled_symmetry = true;     
+            }
+
+
+            function click_toggle_breed(event) {
+                var button = $(this);
+                var breed = button.data("breed");
+                var disabled_flowers;
+                if (breed == "All") {
+                    disabled_flowers = $(`#flower-toggles img.disabled-option`);
+                }
+                else {
+                    disabled_flowers = $(`#flower-toggles img[data-breed="${breed}"].disabled-option`);
+                }
+                if (disabled_flowers.length) {
+                    // Enable all flowers in breed.
+                    disabled_flowers.each(function () {
+                        var img = $(this);
+                        toggle_flower(img.data("breed"), img.data("color"), img);
+                    });
+                    if (breed == "All") {
+                        $("#breed-toggles button").addClass("btn-primary").removeClass("btn-secondary btn-info");
+                        check_color_toggle_states();
+                    }
+                    else {
+                        button.addClass("btn-primary").removeClass("btn-secondary btn-info");
+                        check_breed_toggle_states(null, true);
+                        check_color_toggle_states();
+                    }
+                }
+                else {
+                    // Disable all flowers in breed.
+                    var all_colors;
+                    if (breed == "All") {
+                        all_colors = $(`#flower-toggles img`);
+                    }
+                    else {
+                        all_colors = $(`#flower-toggles img[data-breed="${breed}"]`);
+                    }
+                    all_colors.each(function () {
+                        var img = $(this);
+                        toggle_flower(img.data("breed"), img.data("color"), img);
+                    });
+                    if (breed == "All") {
+                        $("#breed-toggles button").addClass("btn-secondary").removeClass("btn-primary btn-info");
+                        check_color_toggle_states();
+                    }
+                    else {
+                        button.addClass("btn-secondary").removeClass("btn-primary btn-info");
+                        check_breed_toggle_states(null, true);
+                        check_color_toggle_states();
+                    }
+                }
+            }
+
+
+            function click_toggle_color(event) {
+                var button = $(this);
+                var color = button.data("color");
+                var disabled_flowers;
+                if (color == "All") {
+                    disabled_flowers = $(`#flower-toggles img.disabled-option`);
+                }
+                else {
+                    disabled_flowers = $(`#flower-toggles img[data-color="${color}"].disabled-option`);
+                }
+                if (disabled_flowers.length) {
+                    // Enable all flowers of color.
+                    disabled_flowers.each(function () {
+                        var img = $(this);
+                        toggle_flower(img.data("breed"), img.data("color"), img);
+                    });
+                    if (color == "All") {
+                        $("#color-toggles button").addClass("btn-primary").removeClass("btn-secondary btn-info");
+                        check_breed_toggle_states();
+                    }
+                    else {
+                        button.addClass("btn-primary").removeClass("btn-secondary btn-info");
+                        check_breed_toggle_states();
+                        check_color_toggle_states(null, true);
+                    }
+                }
+                else {
+                    // Disable all flowers of color.
+                    var all_colors;
+                    if (color == "All") {
+                        all_colors = $(`#flower-toggles img`);
+                    }
+                    else {
+                        all_colors = $(`#flower-toggles img[data-color="${color}"]`);
+                    }
+                    all_colors.each(function () {
+                        var img = $(this);
+                        toggle_flower(img.data("breed"), img.data("color"), img);
+                    });
+                    if (color == "All") {
+                        $("#color-toggles button").addClass("btn-secondary").removeClass("btn-primary btn-info");
+                        check_breed_toggle_states();
+                    }
+                    else {
+                        button.addClass("btn-secondary").removeClass("btn-primary btn-info");
+                        check_breed_toggle_states();
+                        check_color_toggle_states(null, true);
+                    }
+                }
+            }
+
+
+            function toggle_flower(breed, color, img=null) {
+                if (!img) {
+                    img = $(`#flower-toggles img[data-breed="${breed}"][data-color="${color}"]`);
+                    if (!img.length) {
+                        return;
+                    }
+                }
+                if (img.hasClass("disabled-option")) {
+                    delete flower_data[breed][color].disabled;
+                }
+                else {
+                    flower_data[breed][color].disabled = true;
+                }
+                img.toggleClass("disabled-option");
+                regenerate_enabled_flowers = true;                
+            }
+
+
+            function check_breed_toggle_states(breed, only_all=false) {
+                if (!only_all) {
+                    if (breed) {
+                        var breed_toggle = $(`#breed-toggles button[data-breed="${breed}"]`);
+                        var disabled_flowers = $(`#flower-toggles img[data-breed="${breed}"].disabled-option`).length;
+                        var all_flowers = $(`#flower-toggles img[data-breed="${breed}"]`).length;
+                        if (!disabled_flowers)
+                        {
+                            breed_toggle.addClass("btn-primary").removeClass("btn-secondary btn-info");
+                        }
+                        else if (disabled_flowers < all_flowers) {
+                            breed_toggle.addClass("btn-info").removeClass("btn-primary btn-secondary");
+                        }
+                        else {
+                            breed_toggle.addClass("btn-secondary").removeClass("btn-primary btn-info");
+                        }
+                    }
+                    else {
+                        $.each(flower_breeds, function(index, breed) {
+                            var breed_toggle = $(`#breed-toggles button[data-breed="${breed}"]`);
+                            var disabled_flowers = $(`#flower-toggles img[data-breed="${breed}"].disabled-option`).length;
+                            var all_flowers = $(`#flower-toggles img[data-breed="${breed}"]`).length;
+                            if (!disabled_flowers)
+                            {
+                                breed_toggle.addClass("btn-primary").removeClass("btn-secondary btn-info");
+                            }
+                            else if (disabled_flowers < all_flowers) {
+                                breed_toggle.addClass("btn-info").removeClass("btn-primary btn-secondary");
+                            }
+                            else {
+                                breed_toggle.addClass("btn-secondary").removeClass("btn-primary btn-info");
+                            }
+                        });
+                    }
+                }
+                var all_toggle = $(`#breed-toggles button[data-breed="All"]`);
+                var disabled_flowers = $(`#flower-toggles img.disabled-option`).length;
+                var all_flowers = $(`#flower-toggles img`).length;
+                if (!disabled_flowers)
+                {
+                    all_toggle.addClass("btn-primary").removeClass("btn-secondary btn-info");
+                }
+                else if (disabled_flowers < all_flowers) {
+                    all_toggle.addClass("btn-info").removeClass("btn-primary btn-secondary");
+                }
+                else {
+                    all_toggle.addClass("btn-secondary").removeClass("btn-primary btn-info");
+                }
+            }
+
+
+            function check_color_toggle_states(color, only_all=false) {
+                if (!only_all) {
+                    if (color) {
+                        var color_toggle = $(`#color-toggles button[data-color="${color}"]`);
+                        var disabled_flowers = $(`#flower-toggles img[data-color="${color}"].disabled-option`).length;
+                        var all_flowers = $(`#flower-toggles img[data-color="${color}"]`).length;
+                        if (!disabled_flowers)
+                        {
+                            color_toggle.addClass("btn-primary").removeClass("btn-secondary btn-info");
+                        }
+                        else if (disabled_flowers < all_flowers) {
+                            color_toggle.addClass("btn-info").removeClass("btn-primary btn-secondary");
+                        }
+                        else {
+                            color_toggle.addClass("btn-secondary").removeClass("btn-primary btn-info");
+                        }
+                    }
+                    else {
+                        $.each(flower_colors, function(index, color) {
+                            var color_toggle = $(`#color-toggles button[data-color="${color}"]`);
+                            var disabled_flowers = $(`#flower-toggles img[data-color="${color}"].disabled-option`).length;
+                            var all_flowers = $(`#flower-toggles img[data-color="${color}"]`).length;
+                            if (!disabled_flowers)
+                            {
+                                color_toggle.addClass("btn-primary").removeClass("btn-secondary btn-info");
+                            }
+                            else if (disabled_flowers < all_flowers) {
+                                color_toggle.addClass("btn-info").removeClass("btn-primary btn-secondary");
+                            }
+                            else {
+                                color_toggle.addClass("btn-secondary").removeClass("btn-primary btn-info");
+                            }
+                        });
+                    }
+                }
+                var all_toggle = $(`#color-toggles button[data-color="All"]`);
+                var disabled_flowers = $(`#flower-toggles img.disabled-option`).length;
+                var all_flowers = $(`#flower-toggles img`).length;
+                if (!disabled_flowers)
+                {
+                    all_toggle.addClass("btn-primary").removeClass("btn-secondary btn-info");
+                }
+                else if (disabled_flowers < all_flowers) {
+                    all_toggle.addClass("btn-info").removeClass("btn-primary btn-secondary");
+                }
+                else {
+                    all_toggle.addClass("btn-secondary").removeClass("btn-primary btn-info");
+                }
+            }
+
+
+            function click_toggle_flower(event) {
+                var img = $(this);
+                var breed = img.data("breed");
+                var color = img.data("color");
+                toggle_flower(breed, color, img);
+                check_breed_toggle_states(breed);
+                check_color_toggle_states(color);
+            }
+
+
+            $(document).ready(function() {
+                initialize();
+                $("#generate-button").on("click", click_generate);
+                $("#options-button").on("click", click_options);
+                $("#symmetry-toggles img").on("click", click_toggle_symmetry);
+                $("#breed-toggles button").on("click", click_toggle_breed);
+                $("#color-toggles button").on("click", click_toggle_color);
+                $("#flower-toggles img").on("click", click_toggle_flower);
+            });
+            
+        </script>
+    </body>
+</html>
