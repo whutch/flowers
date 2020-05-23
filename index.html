@@ -307,13 +307,13 @@
                     });
                     regenerate_enabled_symmetry = false;
                 }
-                if (!enabled_symmetry.length) {
-                    return;
-                }
                 // Determine line of symmetry.
                 // TODO: symmetry only works like I have it if the field is a square
                 // TODO: this probably all breaks if the width/height are not odd
-                var symmetry = random_choice(enabled_symmetry);
+                var symmetry_line;
+                if (enabled_symmetry.length) {
+                    symmetry_line = random_choice(enabled_symmetry);
+                }
                 // Determine flower options.
                 var flower_options = [];
                 var flower_option_count = random_int(2, 3);
@@ -334,17 +334,20 @@
                     var flower = $("#flower-bed").children()[index];
                     var flower_name = random_choice(flower_options);
                     $(flower).attr("src", `images/flowers/${flower_name}.png`);
-                    // Now find the symmetrical spot.
-                    var sym_spot = symmetry_data[symmetry].func(spot.x, spot.y);
-                    for (index = 0; index < spots.length; index++) {
-                        if (spots[index].x == sym_spot.x && spots[index].y == sym_spot.y) {
-                            spots.splice(index, 1);
-                            break;
+                    if (symmetry_line) {
+                        // Now find the symmetrical spot.
+                        var symmetry_function = symmetry_data[symmetry_line].func;
+                        var symmetrical_spot = symmetry_function(spot.x, spot.y);
+                        for (index = 0; index < spots.length; index++) {
+                            if (spots[index].x == symmetrical_spot.x && spots[index].y == symmetrical_spot.y) {
+                                spots.splice(index, 1);
+                                break;
+                            }
                         }
+                        index = coord_to_index(symmetrical_spot.x, symmetrical_spot.y, field_width, field_height);
+                        flower = $("#flower-bed").children()[index];
+                        $(flower).attr("src", `images/flowers/${flower_name}.png`);
                     }
-                    index = coord_to_index(sym_spot.x, sym_spot.y, field_width, field_height);
-                    flower = $("#flower-bed").children()[index];
-                    $(flower).attr("src", `images/flowers/${flower_name}.png`);
                 }
             }
 
