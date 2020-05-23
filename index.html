@@ -265,9 +265,7 @@
 
 
             function click_generate(event) {
-                console.clear();
                 if (regenerate_enabled_flowers) {
-                    console.log("Regenerating enabled flowers.");
                     enabled_flowers = [];
                     $.each(flower_data, function(breed, breed_data) {
                         $.each(breed_data, function(color, color_data) {
@@ -280,11 +278,9 @@
                     regenerate_enabled_flowers = false;
                 }
                 if (!enabled_flowers.length) {
-                    console.log("No flowers available.");
                     return;
                 }
                 if (regenerate_enabled_symmetry) {
-                    console.log("Regenerating enabled symmetry.");
                     enabled_symmetry = [];
                     $.each(symmetry_data, function(option, data) {
                         if (!data.disabled) {
@@ -294,14 +290,12 @@
                     regenerate_enabled_symmetry = false;
                 }
                 if (!enabled_symmetry.length) {
-                    console.log("No symmetry available.");
                     return;
                 }
                 // Determine line of symmetry.
                 // TODO: symmetry only works like I have it if the field is a square
                 // TODO: this probably all breaks if the width/height are not odd
                 var symmetry = random_choice(enabled_symmetry);
-                console.log("Symmetry is " + symmetry);
                 // Determine flower options.
                 var flower_options = [];
                 var flower_option_count = random_int(2, 3);
@@ -334,7 +328,6 @@
                     flower = $("#flower-bed").children()[index];
                     $(flower).attr("src", `images/flowers/${flower_name}.png`);
                 }
-                console.log("Done.");
             }
 
 
