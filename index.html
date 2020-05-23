@@ -83,6 +83,17 @@
                 <div class="col">
                     <div class="row">
                         <div class="col">
+                            <h3>Shape</h3>
+                            <div>
+                                <label for="width">Width</label>
+                                <input id="width" name="width" type="text" value="5"/>
+                            </div>
+                            <div>
+                                <label for="height">Height</label>
+                                <input id="height" name="height" type="text" value="5"/>
+                            </div>
+                        </div>
+                        <div class="col">
                             <h3>Symmetry</h3>
                             <div id="symmetry-toggles">
                                 <img src="images/symmetry_vertical.png" class="toggle" data-option="Vertical"/>
@@ -274,10 +285,26 @@
                 $.each(flower_colors, function(index, color) {
                     color_toggles.append(`<button type="button" class="btn btn-primary" data-color="${color}">${color}</button>\n`);
                 });
+                populate_flower_bed();
+            }
+
+
+            function populate_flower_bed() {
                 var flower_bed = $("#flower-bed");
-                var flower_count = field_width * field_height;
-                for (var n = 0; n < flower_count; n++) {
-                    flower_bed.append(`<img src="images/transparent.png" class="flower"/>`);
+                flower_bed.css("width", `${field_width * 5}em`).css("height", `${field_height * 5}em`);
+                flower_bed.empty();
+                var min_x = -Math.floor(field_width / 2);
+                var max_y = Math.floor(field_height / 2);
+                for (var y = max_y; y >= -max_y; y--) {
+                    if (!(field_height % 2) && y == 0) {
+                        continue;
+                    }
+                    for (var x = min_x; x <= -min_x; x++) {
+                        if (!(field_width % 2) && x == 0) {
+                            continue;
+                        }
+                        flower_bed.append(`<img src="images/transparent.png" class="flower" data-x="${x}" data-y="${y}"/>`);
+                    }
                 }
             }
 
@@ -307,9 +334,18 @@
                     });
                     regenerate_enabled_symmetry = false;
                 }
+                // Determine the size of the field.
+                entered_field_width = Number($("#width").val()) || 0;
+                entered_field_height = Number($("#height").val()) || 0;
+                if (entered_field_width < 1 || entered_field_height < 1) {
+                    return;
+                }
+                if (entered_field_width != field_width || entered_field_height != field_height) {
+                    field_width = entered_field_width;
+                    field_height = entered_field_height;
+                    populate_flower_bed();
+                }
                 // Determine line of symmetry.
-                // TODO: symmetry only works like I have it if the field is a square
-                // TODO: this probably all breaks if the width/height are not odd
                 var symmetry_line;
                 if (enabled_symmetry.length) {
                     symmetry_line = random_choice(enabled_symmetry);
@@ -322,31 +358,36 @@
                 }
                 // Generate final design.
                 var spots = [];
-                var min_xy = -Math.floor(field_width / 2);
-                for (var y = min_xy; y < min_xy + field_width; y++) {
-                    for (var x = min_xy; x < min_xy + field_width; x++) {
+                var min_x = -Math.floor(field_width / 2);
+                var max_y = Math.floor(field_height / 2);
+                for (var y = max_y; y >= -max_y; y--) {
+                    if (!(field_height % 2) && y == 0) {
+                        continue;
+                    }
+                    for (var x = min_x; x <= -min_x; x++) {
+                        if (!(field_width % 2) && x == 0) {
+                            continue;
+                        }
                         spots.push({x: x, y: y});
                     }
                 }
                 while (spots.length) {
                     var spot = spots.pop();
-                    var index = coord_to_index(spot.x, spot.y, field_width, field_height);
-                    var flower = $("#flower-bed").children()[index];
+                    var flower = $(`.flower[data-x="${spot.x}"][data-y="${spot.y}"]`);
                     var flower_name = random_choice(flower_options);
-                    $(flower).attr("src", `images/flowers/${flower_name}.png`);
+                    flower.attr("src", `images/flowers/${flower_name}.png`);
                     if (symmetry_line) {
                         // Now find the symmetrical spot.
                         var symmetry_function = symmetry_data[symmetry_line].func;
                         var symmetrical_spot = symmetry_function(spot.x, spot.y);
-                        for (index = 0; index < spots.length; index++) {
+                        for (var index = 0; index < spots.length; index++) {
                             if (spots[index].x == symmetrical_spot.x && spots[index].y == symmetrical_spot.y) {
                                 spots.splice(index, 1);
                                 break;
                             }
                         }
-                        index = coord_to_index(symmetrical_spot.x, symmetrical_spot.y, field_width, field_height);
-                        flower = $("#flower-bed").children()[index];
-                        $(flower).attr("src", `images/flowers/${flower_name}.png`);
+                        flower = $(`.flower[data-x="${symmetrical_spot.x}"][data-y="${symmetrical_spot.y}"]`);
+                        flower.attr("src", `images/flowers/${flower_name}.png`);
                     }
                 }
             }
