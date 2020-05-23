@@ -60,16 +60,20 @@
             }
 
             #footer ul {
-                padding: 0;
+                padding: 0 15px;
                 list-style-type: none;
             }
 
-            #footer ul li {
+            #links li {
                 display: inline-block;
             }
 
-            #footer ul li:not(:first-child) {
+            #links li:not(:first-child) {
                 margin-left: 1em;
+            }
+
+            #credits {
+                font-size: 80%;
             }
         </style>
     </head>
@@ -116,11 +120,19 @@
             </div>
             <div class="row" id="footer">
                 <div class="col">
-                    <ul>
-                        <li><a href="https://github.com/whutch/flowers">Source</a></li>
-                        <li><a href="https://github.com/whutch/flowers/wiki/Changelog">Changelog</a></li>
-                        <li><em><small>Last Update: 2020 May 05 12:48</small></em></li>
-                    </ul>
+                    <div class="row">
+                        <ul id="links">
+                            <li><a href="https://github.com/whutch/flowers">Source</a></li>
+                            <li><a href="https://github.com/whutch/flowers/wiki/Changelog">Changelog</a></li>
+                            <li><em><small>Last Update: 2020 May 05 14:29</small></em></li>
+                        </ul>
+                    </div>
+                    <div class="row" >
+                        <ul id="credits">
+                            <li>Flower images stolen from <a href="https://www.reddit.com/r/AnimalCrossing/comments/fu5s1a/a_guide_for_creating_hybrid_flowers_in_animal/">Karasophe's Flower Guide</a>.</li>
+                            <li>Message whutch#8068 on Discord with feedback.</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
         </div>
@@ -137,9 +149,6 @@
             function random_choice(collection) {
                 return collection[random_int(0, collection.length - 1)];
             }
-
-            // Images stolen from Karasophe's Flower Guide:
-            // https://www.reddit.com/r/AnimalCrossing/comments/fu5s1a/a_guide_for_creating_hybrid_flowers_in_animal/
 
             flower_data = {
                 "Cosmo": {
